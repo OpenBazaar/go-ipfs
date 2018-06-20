@@ -11,6 +11,7 @@
 *~
 
 coverage.txt
+gx-workspace-update.json
 
 .ipfs
 .idea/
@@ -18,3 +19,8 @@ coverage.txt
 bin/gx
 bin/gx*
 bin/tmp
+
+
+vendor
+.tarball
+go-ipfs-source.tar.gz

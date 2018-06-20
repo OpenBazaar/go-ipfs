@@ -8,7 +8,7 @@ It is not safe to run the main IPFS codebase in the OpenBazaar network as your n
 not be able to communicate with other OpenBazaar nodes.
 
 ## Diff
-This fork is currently based on IPFS v0.4.11 with the following changes:
+This fork is currently based on IPFS v0.4.15 with the following changes:
 
 - namesys/publisher.go change DefaultRecordTTL and DefaultPublishLifetime to one week.
 - namesys/namesys.go NewNameSystem takes in a database instance for caching records.
