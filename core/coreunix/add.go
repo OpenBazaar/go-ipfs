@@ -55,17 +55,26 @@ type AddedObject struct {
 
 // NewAdder Returns a new Adder used for a file add operation.
 func NewAdder(ctx context.Context, p pin.Pinner, bs bstore.GCBlockstore, ds ipld.DAGService) (*Adder, error) {
+	prefix, err := dag.PrefixForCidVersion(1)
+	if err != nil {
+		return nil, err
+	}
+	prefix.MhType = mh.SHA2_256
+	prefix.MhLength = -1
 	return &Adder{
 		ctx:        ctx,
 		pinning:    p,
 		blockstore: bs,
 		dagService: ds,
-		Progress:   false,
 		Hidden:     true,
+		Silent:     false,
 		Pin:        true,
 		Trickle:    false,
 		Wrap:       false,
+		RawLeaves:  true,
 		Chunker:    "",
+		Prefix:     &prefix,
+		NoCopy:     false,
 	}, nil
 }
 

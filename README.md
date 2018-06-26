@@ -26,5 +26,6 @@ This fork is currently based on IPFS v0.4.15 with the following changes:
 - core/commands/ipns.go Initialize NewNameSystem with a NewDNSResolver().
 - core/commands/dht.go Swap out DHT import with DHT fork.
 - core/coreunix/add.go AddWithContext function modified to use CIDv1.
+- core/coreunix/add.go NewAddr updated to use prefix and CIDv1.
 
 Finally, we've had to patch go-multiaddr to handle CIDv1 in the /ipfs/ addr strings. We'll try to get this merged into the main repo.
