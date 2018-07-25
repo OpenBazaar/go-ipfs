@@ -54,6 +54,8 @@ type PubsubResolver struct {
 	subs map[string]*floodsub.Subscription
 }
 
+var ErrorNotSubscribed = errors.New("cache is stale because not subscribed to name")
+
 // NewPubsubPublisher constructs a new Publisher that publishes IPNS records through pubsub.
 // The constructor interface is complicated by the need to bootstrap the pubsub topic.
 // This could be greatly simplified if the pubsub implementation handled bootstrap itself
@@ -70,10 +72,10 @@ func NewPubsubPublisher(ctx context.Context, host p2phost.Host, ds ds.Datastore,
 
 // NewPubsubResolver constructs a new Resolver that resolves IPNS records through pubsub.
 // same as above for pubsub bootstrap dependencies
-func NewPubsubResolver(ctx context.Context, host p2phost.Host, cr routing.ContentRouting, pkf routing.PubKeyFetcher, ps *floodsub.PubSub) *PubsubResolver {
+func NewPubsubResolver(ctx context.Context, host p2phost.Host, ds ds.Datastore, cr routing.ContentRouting, pkf routing.PubKeyFetcher, ps *floodsub.PubSub) *PubsubResolver {
 	return &PubsubResolver{
 		ctx:  ctx,
-		ds:   dssync.MutexWrap(ds.NewMapDatastore()),
+		ds:   ds,
 		host: host, // needed for pubsub bootstrap
 		cr:   cr,   // needed for pubsub bootstrap
 		pkf:  pkf,
@@ -237,6 +239,8 @@ func (r *PubsubResolver) resolveOnce(ctx context.Context, name string, options *
 		ctx, cancel := context.WithCancel(r.ctx)
 		go r.handleSubscription(sub, name, pubk, cancel)
 		go bootstrapPubsub(ctx, r.cr, r.host, name)
+		r.mx.Unlock()
+		return "", ErrorNotSubscribed
 	}
 	r.mx.Unlock()
 
@@ -255,17 +259,6 @@ func (r *PubsubResolver) resolveOnce(ctx context.Context, name string, options *
 	err = proto.Unmarshal(data, entry)
 	if err != nil {
 		return "", err
-	}
-
-	// check EOL; if the entry has expired, delete from datastore and return ds.ErrNotFound
-	eol, ok := checkEOL(entry)
-	if ok && eol.Before(time.Now()) {
-		err = r.ds.Delete(dshelp.NewKeyFromBinary([]byte(name)))
-		if err != nil {
-			log.Warningf("PubsubResolve: error deleting stale value for %s: %s", name, err.Error())
-		}
-
-		return "", ErrResolveFailed
 	}
 
 	value, err := path.ParsePath(string(entry.GetValue()))

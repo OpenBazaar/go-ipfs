@@ -12,7 +12,11 @@ This fork is currently based on IPFS v0.4.15 with the following changes:
 
 - namesys/publisher.go change DefaultRecordTTL and DefaultPublishLifetime to one week.
 - namesys/namesys.go NewNameSystem takes in a database instance for caching records.
-- namesys/routing.go resolveOnce stores the resolved record in the database using `cachePrefix` and returns the record when routing returns not found if UsePersistentCache is true.
+- namesys/namesys.go resolveOnce tries the pubsub resolver again if the DHT fails.
+- namesys/pubsub.go NewPubsubResolver takes in a datastore and uses it in place of the memory map.
+- namesys/pubsub.go resolveOnce exits with error if not subscribed.
+- namesys/pubsub.go resolveOnce remove code block checking EOL validity.
+- namesys/routing.go resolveOnce stores the resolved record in the database using the same format as the pubsub resolver.
 - namesys/routing.go resolveOnce stores the resolved public key in the database using `keyCachePrefix` and checks the db when fetching public keys.
 - namesys/routing.go resolveOnce is modified to optionally accept an alt-root in the format root:suffix.
 - namesys/namesys.go NewNameSystem takes in a custom DNSResolver instance which can be nil.
